@@ -2677,6 +2677,20 @@ wheels = [
 ]
 
 [[package]]
+name = "tavily-python"
+version = "0.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "requests" },
+    { name = "tiktoken" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ca/50/7f4acafe72ffd10d3578ddec76f993af5af81504bc7315ea54862f2705b9/tavily_python-0.5.0.tar.gz", hash = "sha256:2c60b88203b630e1b37fc711913a1090ced6719b3f21089f25ec06e9e1602822", size = 16455 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/90/99/05776f7150a5b3f8d853377144a3a634131964c0fce38307537674a9a674/tavily_python-0.5.0-py3-none-any.whl", hash = "sha256:e874f6a04a56cdda80a505fe0b4f5d61d25372bd52a83e6773926fb297dcaa29", size = 14361 },
+]
+
+[[package]]
 name = "tenacity"
 version = "8.5.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3037,6 +3051,7 @@ dependencies = [
     { name = "langchain-core" },
     { name = "langchain-openai" },
     { name = "openai" },
+    { name = "tavily-python" },
     { name = "tiktoken" },
 ]
 
@@ -3050,6 +3065,7 @@ requires-dist = [
     { name = "langchain-core", specifier = "==0.3.0" },
     { name = "langchain-openai", specifier = "==0.2.0" },
     { name = "openai", specifier = "==1.40.6" },
+    { name = "tavily-python", specifier = "==0.5.0" },
     { name = "tiktoken", specifier = "==0.7.0" },
 ]
 
