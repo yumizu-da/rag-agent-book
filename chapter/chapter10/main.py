@@ -1,5 +1,5 @@
 import operator
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
@@ -20,9 +20,7 @@ class Persona(BaseModel):
 
 # ペルソナのリストを表すデータモデル
 class Personas(BaseModel):
-    personas: list[Persona] = Field(
-        default_factory=list, description="ペルソナのリスト"
-    )
+    personas: list[Persona] = Field(default_factory=list, description="ペルソナのリスト")
 
 
 # インタビュー内容を表すデータモデル
@@ -34,9 +32,7 @@ class Interview(BaseModel):
 
 # インタビュー結果のリストを表すデータモデル
 class InterviewResult(BaseModel):
-    interviews: list[Interview] = Field(
-        default_factory=list, description="インタビュー結果のリスト"
-    )
+    interviews: list[Interview] = Field(default_factory=list, description="インタビュー結果のリスト")
 
 
 # 評価の結果を表すデータモデル
@@ -55,12 +51,8 @@ class InterviewState(BaseModel):
         default_factory=list, description="実施されたインタビューのリスト"
     )
     requirements_doc: str = Field(default="", description="生成された要件定義")
-    iteration: int = Field(
-        default=0, description="ペルソナ生成とインタビューの反復回数"
-    )
-    is_information_sufficient: bool = Field(
-        default=False, description="情報が十分かどうか"
-    )
+    iteration: int = Field(default=0, description="ペルソナ生成とインタビューの反復回数")
+    is_information_sufficient: bool = Field(default=False, description="情報が十分かどうか")
 
 
 # ペルソナを生成するクラス
@@ -88,7 +80,7 @@ class PersonaGenerator:
         # ペルソナ生成のためのチェーンを作成
         chain = prompt | self.llm
         # ペルソナを生成
-        return chain.invoke({"user_request": user_request})
+        return chain.invoke({"user_request": user_request})  # type: ignore
 
 
 # インタビューを実施するクラス
@@ -98,21 +90,15 @@ class InterviewConductor:
 
     def run(self, user_request: str, personas: list[Persona]) -> InterviewResult:
         # 質問を生成
-        questions = self._generate_questions(
-            user_request=user_request, personas=personas
-        )
+        questions = self._generate_questions(user_request=user_request, personas=personas)
         # 回答を生成
         answers = self._generate_answers(personas=personas, questions=questions)
         # 質問と回答の組み合わせからインタビューリストを作成
-        interviews = self._create_interviews(
-            personas=personas, questions=questions, answers=answers
-        )
+        interviews = self._create_interviews(personas=personas, questions=questions, answers=answers)
         # インタビュー結果を返す
         return InterviewResult(interviews=interviews)
 
-    def _generate_questions(
-        self, user_request: str, personas: list[Persona]
-    ) -> list[str]:
+    def _generate_questions(self, user_request: str, personas: list[Persona]) -> list[str]:
         # 質問生成のためのプロンプトを定義
         question_prompt = ChatPromptTemplate.from_messages(
             [
@@ -144,9 +130,7 @@ class InterviewConductor:
         # 質問をバッチ処理で生成
         return question_chain.batch(question_queries)
 
-    def _generate_answers(
-        self, personas: list[Persona], questions: list[str]
-    ) -> list[str]:
+    def _generate_answers(self, personas: list[Persona], questions: list[str]) -> list[str]:
         # 回答生成のためのプロンプトを定義
         answer_prompt = ChatPromptTemplate.from_messages(
             [
@@ -172,9 +156,7 @@ class InterviewConductor:
         # 回答をバッチ処理で生成
         return answer_chain.batch(answer_queries)
 
-    def _create_interviews(
-        self, personas: list[Persona], questions: list[str], answers: list[str]
-    ) -> list[Interview]:
+    def _create_interviews(self, personas: list[Persona], questions: list[str], answers: list[str]) -> list[Interview]:
         # ペルソナ毎に質問と回答の組み合わせからインタビューオブジェクトを作成
         return [
             Interview(persona=persona, question=question, answer=answer)
@@ -207,16 +189,16 @@ class InformationEvaluator:
         # 情報の十分性を評価するチェーンを作成
         chain = prompt | self.llm
         # 評価結果を返す
+
         return chain.invoke(
             {
                 "user_request": user_request,
                 "interview_results": "\n".join(
-                    f"ペルソナ: {i.persona.name} - {i.persona.background}\n"
-                    f"質問: {i.question}\n回答: {i.answer}\n"
+                    f"ペルソナ: {i.persona.name} - {i.persona.background}\n" f"質問: {i.question}\n回答: {i.answer}\n"
                     for i in interviews
                 ),
             }
-        )
+        )  # type: ignore
 
 
 # 要件定義書を生成するクラス
@@ -256,8 +238,7 @@ class RequirementsDocumentGenerator:
             {
                 "user_request": user_request,
                 "interview_results": "\n".join(
-                    f"ペルソナ: {i.persona.name} - {i.persona.background}\n"
-                    f"質問: {i.question}\n回答: {i.answer}\n"
+                    f"ペルソナ: {i.persona.name} - {i.persona.background}\n" f"質問: {i.question}\n回答: {i.answer}\n"
                     for i in interviews
                 ),
             }
@@ -266,7 +247,7 @@ class RequirementsDocumentGenerator:
 
 # 要件定義書生成AIエージェントのクラス
 class DocumentationAgent:
-    def __init__(self, llm: ChatOpenAI, k: Optional[int] = None):
+    def __init__(self, llm: ChatOpenAI, k: int = 5):
         # 各種ジェネレータの初期化
         self.persona_generator = PersonaGenerator(llm=llm, k=k)
         self.interview_conductor = InterviewConductor(llm=llm)
@@ -302,7 +283,7 @@ class DocumentationAgent:
         workflow.add_edge("generate_requirements", END)
 
         # グラフのコンパイル
-        return workflow.compile()
+        return workflow.compile()  # type: ignore
 
     def _generate_personas(self, state: InterviewState) -> dict[str, Any]:
         # ペルソナの生成
@@ -314,16 +295,12 @@ class DocumentationAgent:
 
     def _conduct_interviews(self, state: InterviewState) -> dict[str, Any]:
         # インタビューの実施
-        new_interviews: InterviewResult = self.interview_conductor.run(
-            state.user_request, state.personas[-5:]
-        )
+        new_interviews: InterviewResult = self.interview_conductor.run(state.user_request, state.personas[-5:])
         return {"interviews": new_interviews.interviews}
 
     def _evaluate_information(self, state: InterviewState) -> dict[str, Any]:
         # 情報の評価
-        evaluation_result: EvaluationResult = self.information_evaluator.run(
-            state.user_request, state.interviews
-        )
+        evaluation_result: EvaluationResult = self.information_evaluator.run(state.user_request, state.interviews)
         return {
             "is_information_sufficient": evaluation_result.is_sufficient,
             "evaluation_reason": evaluation_result.reason,
@@ -331,16 +308,14 @@ class DocumentationAgent:
 
     def _generate_requirements(self, state: InterviewState) -> dict[str, Any]:
         # 要件定義書の生成
-        requirements_doc: str = self.requirements_generator.run(
-            state.user_request, state.interviews
-        )
+        requirements_doc: str = self.requirements_generator.run(state.user_request, state.interviews)
         return {"requirements_doc": requirements_doc}
 
     def run(self, user_request: str) -> str:
         # 初期状態の設定
         initial_state = InterviewState(user_request=user_request)
         # グラフの実行
-        final_state = self.graph.invoke(initial_state)
+        final_state = self.graph.invoke(initial_state)  # type: ignore
         # 最終的な要件定義書の取得
         return final_state["requirements_doc"]
 
@@ -353,9 +328,7 @@ def main():
     import argparse
 
     # コマンドライン引数のパーサーを作成
-    parser = argparse.ArgumentParser(
-        description="ユーザー要求に基づいて要件定義を生成します"
-    )
+    parser = argparse.ArgumentParser(description="ユーザー要求に基づいて要件定義を生成します")
     # "task"引数を追加
     parser.add_argument(
         "--task",
